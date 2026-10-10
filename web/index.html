@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#ebebeb" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.json">
+<link rel="icon" href="icon-192.png">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>FF Messenger</title>
+<style>
+:root{--pg:#ebebeb;--sf:#fff;--soft:#f3f3f3;--tx:#0a0a0a;--mu:#7d7d7d;--on:#fff;--bd:#d6d6d6;--me:#0a0a0a;--meTx:#fff;--bad:#dc2626}
+@media(prefers-color-scheme:dark){:root{--pg:#0d0d0d;--sf:#1b1b1d;--soft:#262628;--tx:#f5f5f5;--mu:#8a8a8e;--on:#000;--bd:#333336;--me:#f5f5f5;--meTx:#000;--bad:#f87171}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%;margin:0}
+body{background:var(--pg);color:var(--tx);font:16px/1.4 -apple-system,system-ui,sans-serif;display:flex;justify-content:center}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+#app{width:100%;max-width:640px;height:100%;position:relative;overflow:hidden;background:var(--pg)}
+.view{position:absolute;inset:0;display:flex;flex-direction:column}
+.hidden{display:none!important}
+header{background:var(--sf);border-bottom:1px solid var(--bd);border-radius:0 0 26px 26px;padding:calc(env(safe-area-inset-top) + 12px) 16px 14px;display:flex;align-items:center;gap:10px;min-height:60px}
+header h1{font-size:20px;margin:0;flex:1;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.icon{background:var(--soft);border:1px solid var(--bd);border-radius:50%;width:38px;height:38px;font-size:20px;line-height:1;flex:none}
+.scroll{flex:1;overflow-y:auto;padding:12px 0}
+.row{display:flex;align-items:center;gap:12px;padding:10px 18px;cursor:pointer}
+.row:active{background:var(--soft)}
+.av{width:48px;height:48px;border-radius:50%;background:var(--tx);color:var(--on);display:flex;align-items:center;justify-content:center;font-weight:700;flex:none}
+.av.s{width:40px;height:40px}
+.grow{flex:1;min-width:0}
+.name{font-weight:600}
+.mu{color:var(--mu);font-size:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.meta{text-align:right;font-size:12px;color:var(--mu)}
+.badge{display:inline-block;background:var(--tx);color:var(--on);border-radius:10px;min-width:20px;padding:0 6px;font-size:12px;font-weight:700;margin-top:4px}
+.empty{text-align:center;color:var(--mu);margin-top:80px;padding:0 24px}
+nav{display:flex;background:var(--sf);border-top:1px solid var(--bd);padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:0;padding:12px 0;color:var(--mu);font-size:13px}
+nav button.on{color:var(--tx);font-weight:600}
+.fab{position:absolute;right:18px;bottom:calc(env(safe-area-inset-bottom) + 76px);width:56px;height:56px;border-radius:50%;border:0;background:var(--tx);color:var(--on);font-size:30px;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.msgs{flex:1;overflow-y:auto;padding:12px;display:flex;flex-direction:column;gap:6px}
+.msg{max-width:80%;padding:8px 12px;border-radius:18px;background:var(--sf);border:1px solid var(--bd);align-self:flex-start;word-wrap:break-word;white-space:pre-wrap}
+.msg.me{align-self:flex-end;background:var(--me);color:var(--meTx);border-color:var(--me)}
+.msg small{display:block;text-align:right;font-size:11px;opacity:.6;margin-top:2px}
+.msg .who{font-size:12px;font-weight:600;opacity:.7;margin-bottom:2px}
+.composer{display:flex;gap:8px;padding:8px 10px calc(env(safe-area-inset-bottom) + 8px);background:var(--sf);border-top:1px solid var(--bd)}
+.composer input{flex:1;background:var(--soft);border:1px solid var(--bd);border-radius:22px;padding:10px 16px;outline:0}
+.send{width:44px;height:44px;border-radius:50%;border:0;background:var(--tx);color:var(--on);font-size:18px}
+.field{display:block;width:calc(100% - 32px);margin:10px 16px 0;padding:13px 14px;border-radius:14px;border:1px solid var(--bd);background:var(--sf);outline:0}
+.btn{display:block;width:calc(100% - 32px);margin:14px 16px 0;padding:14px;border-radius:14px;border:0;background:var(--tx);color:var(--on);font-weight:600}
+.link{background:none;border:0;color:var(--mu);margin:18px auto 0;display:block}
+.err{color:var(--bad);margin:10px 16px 0;font-size:14px;min-height:18px}
+.login{justify-content:center}
+.login h1{margin:0 16px 4px;font-size:32px}
+.login p{margin:0 16px 14px;color:var(--mu)}
+.card{margin:0 16px 14px;background:var(--sf);border:1px solid var(--bd);border-radius:20px;padding:20px;text-align:center}
+.check{font-size:20px}
+</style>
+</head>
+<body>
+<div id="app">
+
+  <section id="login" class="view login hidden">
+    <h1>FF Messenger</h1>
+    <p id="loginHint">Войдите, чтобы продолжить</p>
+    <input class="field hidden" id="lName" placeholder="Имя" autocomplete="name">
+    <input class="field" id="lEmail" type="email" placeholder="Email" autocomplete="email" autocapitalize="none">
+    <input class="field" id="lPass" type="password" placeholder="Пароль (от 6 символов)" autocomplete="current-password">
+    <div class="err" id="lErr"></div>
+    <button class="btn" id="lGo">Войти</button>
+    <button class="link" id="lSwitch">Нет аккаунта? Регистрация</button>
+  </section>
+
+  <section id="main" class="view hidden">
+    <header><h1 id="mainTitle">Чаты</h1></header>
+    <div class="scroll" id="tabChats"></div>
+    <div class="scroll hidden" id="tabCalls"><div class="empty">Звонки появятся на этапе 4</div></div>
+    <div class="scroll hidden" id="tabProfile">
+      <div class="card"><div class="av" id="pAv" style="margin:0 auto 12px;width:80px;height:80px;font-size:32px"></div>
+        <div class="name" id="pName" style="font-size:20px"></div><div class="mu" id="pEmail"></div></div>
+      <button class="btn" id="logout" style="background:var(--soft);color:var(--bad);border:1px solid var(--bd)">Выйти</button>
+    </div>
+    <button class="fab" id="fab">+</button>
+    <nav>
+      <button data-tab="Chats" class="on">Чаты</button>
+      <button data-tab="Calls">Звонки</button>
+      <button data-tab="Profile">Профиль</button>
+    </nav>
+  </section>
+
+  <section id="chat" class="view hidden">
+    <header><button class="icon" id="back">‹</button><h1 id="chatTitle"></h1></header>
+    <div class="msgs" id="msgs"></div>
+    <form class="composer" id="composer">
+      <input id="text" placeholder="Сообщение" autocomplete="off">
+      <button class="send" type="submit">➤</button>
+    </form>
+  </section>
+
+  <section id="picker" class="view hidden">
+    <header><button class="icon" id="pickBack">‹</button><h1 id="pickTitle">Новый чат</h1><button class="icon hidden" id="pickDone" style="width:auto;border-radius:19px;padding:0 14px;font-size:15px">Создать</button></header>
+    <input class="field hidden" id="groupName" placeholder="Название группы">
+    <input class="field" id="search" placeholder="Поиск по имени или email" autocapitalize="none">
+    <div class="scroll" id="people"></div>
+  </section>
+</div>
+
+<script>
+'use strict';
+const $ = (id) => document.getElementById(id);
+const store = { get: (k) => { try { return localStorage.getItem(k); } catch { return null; } },
+                set: (k, v) => { try { v == null ? localStorage.removeItem(k) : localStorage.setItem(k, v); } catch {} } };
+
+// Адрес сервера: тот же сайт по умолчанию; для хостинга сайта отдельно — ?server=https://...
+const qs = new URLSearchParams(location.search);
+if (qs.get('server')) store.set('server', qs.get('server').replace(/\/$/, ''));
+const API = store.get('server') || '';
+const WS = (API || location.origin).replace(/^http/, 'ws') + '/ws';
+
+let token = store.get('token'), me = null, chats = [], openChat = null, msgs = [], socket = null, retry = null;
+let pickMode = 'direct', picked = new Set();
+
+async function http(method, path, body) {
+  const res = await fetch(API + path, { method, headers: { 'Content-Type': 'application/json', ...(token && { Authorization: 'Bearer ' + token }) },
+    body: body === undefined ? undefined : JSON.stringify(body) });
+  const data = await res.json().catch(() => ({}));
+  if (res.status === 401 && token) { logout(); throw new Error('Сессия истекла'); }
+  if (!res.ok) throw new Error(data.error || 'Ошибка ' + res.status);
+  return data;
+}
+
+function el(tag, props = {}, ...kids) {
+  const e = document.createElement(tag);
+  for (const [k, v] of Object.entries(props)) k === 'class' ? (e.className = v) : k === 'onclick' ? (e.onclick = v) : e.setAttribute(k, v);
+  for (const kid of kids.flat()) if (kid != null) e.append(kid);
+  return e;
+}
+const avatar = (name, small) => el('div', { class: 'av' + (small ? ' s' : '') }, (name[0] || '?').toUpperCase());
+const hhmm = (ts) => new Date(ts).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+const show = (id) => { for (const v of ['login', 'main', 'chat', 'picker']) $(v).classList.toggle('hidden', v !== id); };
+
+// ---------- вход ----------
+let registering = false;
+function setRegistering(on) {
+  registering = on;
+  $('lName').classList.toggle('hidden', !on);
+  $('lGo').textContent = on ? 'Зарегистрироваться' : 'Войти';
+  $('lSwitch').textContent = on ? 'Уже есть аккаунт? Войти' : 'Нет аккаунта? Регистрация';
+  $('loginHint').textContent = on ? 'Создайте аккаунт' : 'Войдите, чтобы продолжить';
+  $('lErr').textContent = '';
+}
+$('lSwitch').onclick = () => setRegistering(!registering);
+$('lGo').onclick = async () => {
+  $('lErr').textContent = '';
+  try {
+    const email = $('lEmail').value, password = $('lPass').value;
+    const r = registering ? await http('POST', '/auth/register', { name: $('lName').value, email, password })
+                          : await http('POST', '/auth/login', { email, password });
+    token = r.token; store.set('token', token); me = r.user; start();
+  } catch (e) { $('lErr').textContent = e.message; }
+};
+function logout() {
+  token = null; me = null; store.set('token', null);
+  clearTimeout(retry); if (socket) { socket.onclose = null; socket.close(); socket = null; }
+  show('login');
+}
+$('logout').onclick = logout;
+
+// ---------- realtime ----------
+function connect() {
+  if (!token) return;
+  socket = new WebSocket(WS + '?token=' + encodeURIComponent(token));
+  socket.onmessage = (e) => onEvent(JSON.parse(e.data));
+  socket.onclose = () => { if (token) retry = setTimeout(connect, 2000); };
+}
+function onEvent(ev) {
+  if (ev.type === 'message' && openChat && ev.message.chatId === openChat.id) {
+    if (!msgs.some((m) => m.id === ev.message.id)) { msgs.push(ev.message); renderMsgs(); }
+    http('POST', `/chats/${openChat.id}/read`, {}).catch(() => {});
+  }
+  loadChats();
+}
+
+// ---------- список чатов ----------
+async function loadChats() {
+  try { chats = await http('GET', '/chats'); } catch { return; }
+  const box = $('tabChats'); box.replaceChildren();
+  if (!chats.length) box.append(el('div', { class: 'empty' }, 'Чатов пока нет. Нажмите «+», чтобы начать.'));
+  for (const c of chats) {
+    const last = c.lastMessage;
+    box.append(el('div', { class: 'row', onclick: () => openChatView(c) },
+      avatar(c.title),
+      el('div', { class: 'grow' }, el('div', { class: 'name' }, c.title), el('div', { class: 'mu' }, last ? last.text || 'Вложение' : 'Нет сообщений')),
+      el('div', { class: 'meta' }, last ? hhmm(last.createdAt) : '', c.unread ? el('div', { class: 'badge' }, String(c.unread)) : null)));
+  }
+}
+document.querySelectorAll('nav button').forEach((b) => b.onclick = () => {
+  document.querySelectorAll('nav button').forEach((x) => x.classList.toggle('on', x === b));
+  for (const t of ['Chats', 'Calls', 'Profile']) $('tab' + t).classList.toggle('hidden', t !== b.dataset.tab);
+  $('mainTitle').textContent = { Chats: 'Чаты', Calls: 'Звонки', Profile: 'Профиль' }[b.dataset.tab];
+  $('fab').classList.toggle('hidden', b.dataset.tab !== 'Chats');
+});
+
+// ---------- переписка ----------
+async function openChatView(c) {
+  openChat = c; msgs = []; $('chatTitle').textContent = c.title; renderMsgs(); show('chat');
+  try { msgs = await http('GET', `/chats/${c.id}/messages`); renderMsgs(); await http('POST', `/chats/${c.id}/read`, {}); loadChats(); } catch {}
+  $('text').focus();
+}
+function renderMsgs() {
+  const box = $('msgs'); box.replaceChildren();
+  for (const m of msgs) {
+    const mine = m.senderId === me.id;
+    const who = !mine && openChat.type === 'group' ? openChat.members.find((u) => u.id === m.senderId)?.name : null;
+    box.append(el('div', { class: 'msg' + (mine ? ' me' : '') }, who ? el('div', { class: 'who' }, who) : null, m.text, el('small', {}, hhmm(m.createdAt))));
+  }
+  box.scrollTop = box.scrollHeight;
+}
+$('back').onclick = () => { openChat = null; show('main'); loadChats(); };
+$('composer').onsubmit = async (e) => {
+  e.preventDefault();
+  const text = $('text').value.trim(); if (!text) return;
+  $('text').value = '';
+  try {
+    const m = await http('POST', `/chats/${openChat.id}/messages`, { text });
+    if (!msgs.some((x) => x.id === m.id)) { msgs.push(m); renderMsgs(); }
+  } catch { $('text').value = text; }
+};
+
+// ---------- новый чат / группа ----------
+function openPicker(mode) {
+  pickMode = mode; picked = new Set();
+  $('pickTitle').textContent = mode === 'group' ? 'Новая группа' : 'Новый чат';
+  $('groupName').classList.toggle('hidden', mode !== 'group'); $('groupName').value = '';
+  $('pickDone').classList.toggle('hidden', mode !== 'group');
+  $('search').value = ''; show('picker'); search();
+}
+$('fab').onclick = () => openPicker('direct');
+$('pickBack').onclick = () => show('main');
+let searchTimer;
+$('search').oninput = () => { clearTimeout(searchTimer); searchTimer = setTimeout(search, 250); };
+async function search() {
+  let users; try { users = await http('GET', '/users?q=' + encodeURIComponent($('search').value.trim())); } catch { return; }
+  const box = $('people'); box.replaceChildren();
+  if (pickMode === 'direct' && !$('search').value.trim())
+    box.append(el('div', { class: 'row', onclick: () => openPicker('group') }, el('div', { class: 'av s' }, '👥'), el('div', { class: 'name' }, 'Новая группа')));
+  if (!users.length) box.append(el('div', { class: 'empty' }, 'Никого не найдено'));
+  for (const u of users) {
+    const mark = el('span', { class: 'check' }, picked.has(u.id) ? '✓' : '');
+    box.append(el('div', { class: 'row', onclick: async () => {
+      if (pickMode === 'group') { picked.has(u.id) ? picked.delete(u.id) : picked.add(u.id); mark.textContent = picked.has(u.id) ? '✓' : ''; return; }
+      try { const { id } = await http('POST', '/chats', { type: 'direct', userId: u.id }); await loadChats(); openChatView(chats.find((c) => c.id === id)); }
+      catch (e) { alert(e.message); }
+    } }, avatar(u.name, true), el('div', { class: 'grow' }, el('div', {}, u.name), el('div', { class: 'mu' }, u.email)), mark));
+  }
+}
+$('pickDone').onclick = async () => {
+  try {
+    const { id } = await http('POST', '/chats', { type: 'group', title: $('groupName').value, memberIds: [...picked] });
+    await loadChats(); openChatView(chats.find((c) => c.id === id));
+  } catch (e) { alert(e.message); }
+};
+
+// ---------- старт ----------
+function start() {
+  $('pAv').textContent = (me.name[0] || '?').toUpperCase(); $('pName').textContent = me.name; $('pEmail').textContent = me.email;
+  show('main'); loadChats(); connect();
+}
+(async () => {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(() => {});
+  if (token) { try { me = await http('GET', '/me'); return start(); } catch {} }
+  show('login');
+})();
+</script>
+</body>
+</html>

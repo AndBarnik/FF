@@ -1,6 +1,7 @@
 import express from 'express';
 import cors from 'cors';
 import { createServer } from 'node:http';
+import { fileURLToPath } from 'node:url';
 import { WebSocketServer } from 'ws';
 import { openDb } from './db.js';
 import { authMiddleware, hashPassword, signToken, verifyPassword, verifyToken } from './auth.js';
@@ -25,6 +26,9 @@ export function createApp(db = openDb()) {
     id: m.id, chatId: m.chat_id, senderId: m.sender_id, kind: m.kind,
     text: m.text, mediaUrl: m.media_url, createdAt: m.created_at,
   });
+
+  // сайт (PWA) раздаётся этим же сервером
+  app.use(express.static(fileURLToPath(new URL('../../web', import.meta.url))));
 
   // ---- auth ----
   app.post('/auth/register', (req, res) => {

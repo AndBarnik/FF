@@ -1,18 +1,21 @@
 # FF Messenger
 
-Мессенджер для телефона (iOS/Android). Всё на бесплатных технологиях.
+Мессенджер как сайт (PWA, по аналогии с Rashody): открывается в браузере телефона и
+добавляется на экран «Домой». Всё на бесплатных технологиях.
 
-- `server/` — Node.js (≥ 22.13), Express, WebSocket, встроенный SQLite (без внешней БД).
-- `mobile/` — React Native + Expo (Expo Go бесплатен).
+- `web/` — сайт (один `index.html`, манифест, service worker, иконки), без сборки.
+- `server/` — Node.js (≥ 22.13), Express, WebSocket, встроенный SQLite. Раздаёт и API, и сайт.
 
 ## Запуск
 ```bash
-cd server && npm install && npm start      # сервер на :3000
-cd mobile && npm install && npm start      # откройте QR-код в Expo Go
+cd server && npm install && npm start
 ```
-На реальном телефоне в `mobile/app.json` замените `extra.apiUrl` на адрес компьютера
-в локальной сети, например `http://192.168.1.10:3000`.
-Для продакшена задайте `JWT_SECRET` и `DB_PATH` для сервера.
+Откройте http://localhost:3000. С телефона в той же Wi-Fi: `http://<IP-компьютера>:3000`.
+Для установки на экран «Домой», звонков и записи с микрофона/камеры нужен HTTPS —
+его даёт бесплатный хостинг или туннель (например, Cloudflare Tunnel).
+Для продакшена задайте `JWT_SECRET` и `DB_PATH`.
+
+Сайт можно держать и отдельно (GitHub Pages): откройте его один раз как `https://.../?server=https://адрес-сервера`.
 
 ## Этапы
 1. ✅ Вход, личные и групповые чаты, текстовые сообщения, realtime
